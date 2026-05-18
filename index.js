@@ -3,13 +3,16 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const express = require('express');
 const dotenv = require('dotenv');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const cors = require('cors');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 dotenv.config();
 const uri = process.env.MONODB_URI;
 
 const app = express();
 
 const PORT = process.env.PORT;
+app.use(cors());
+app.use(express.json());
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -21,9 +24,38 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    // Send a ping to confirm a successful connection
+
+    const db = client.db('petAdoption');
+    const petAdoptionCollection = db.collection('pets');
+    app.get('/allPets', async (req, res) => {
+      const result = await petAdoptionCollection.find().toArray();
+      res.json(result);
+    });
+
+    app.post('/allPets', async (req, res) => {
+      const allPetsInfo = req.body;
+      const result = await petAdoptionCollection.insertOne(allPetsInfo);
+      res.json(result);
+    });
+    // details
+    app.get('/allPets/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await petAdoptionCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.json(result);
+    });
+    // edit
+    app.patch('/allPets/:id', async (req, res) => {
+      const { id } = req.params;
+      const updateData = req.body;
+      const result = await petAdoptionCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData },
+      );
+      res.json(result);
+    });
     await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!',
