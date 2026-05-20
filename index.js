@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 dotenv.config();
-const uri = process.env.MONODB_URI;
+const uri = process.env.MONGODB_URI;
 
 const app = express();
 
@@ -24,10 +24,18 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db('petAdoption');
     const petAdoptionCollection = db.collection('pets');
+    const adoptionCollection = db.collection('adoptionRequests');
+
+    // featured
+    app.get('/featured', async (req, res) => {
+      const result = await petAdoptionCollection.find().limit(6).toArray();
+      res.json(result);
+    });
+
     app.get('/allPets', async (req, res) => {
       const result = await petAdoptionCollection.find().toArray();
       res.json(result);
@@ -56,7 +64,27 @@ async function run() {
       );
       res.json(result);
     });
-    await client.db('admin').command({ ping: 1 });
+    // delete
+    app.delete('/allPets/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await petAdoptionCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.json(result);
+    });
+
+    // adoption request
+    app.post('/adoption-request', async (req, res) => {
+      const adoptionInfo = req.body;
+      const result = await adoptionCollection.insertOne(adoptionInfo);
+      res.json(result);
+    });
+
+    app.get('/adoption-request', async (req, res) => {
+      const result = await adoptionCollection.find().toArray();
+      res.json(result);
+    });
+    // await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!',
     );
