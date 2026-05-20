@@ -80,10 +80,15 @@ async function run() {
       res.json(result);
     });
 
-    app.get('/adoption-request', async (req, res) => {
-      const result = await adoptionCollection.find().toArray();
+    // my request
+    app.get('/adoption-request/:userId', async (req, res) => {
+      const { userId } = req.params;
+      const result = await adoptionCollection
+        .find({ userId: userId })
+        .toArray();
       res.json(result);
     });
+
     // await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!',
