@@ -89,6 +89,99 @@ async function run() {
       res.json(result);
     });
 
+    // cancle
+    app.delete(
+      '/adoption-request/:requestId',
+
+      async (req, res) => {
+        const { requestId } = req.params;
+        const result = await adoptionCollection.deleteOne({
+          _id: new ObjectId(requestId),
+        });
+        res.json(result);
+      },
+    );
+
+    // gpt
+    // approve
+    app.patch('/adoption/approve/:petId', async (req, res) => {
+      const { petId } = req.params;
+
+      await petAdoptionCollection.updateOne(
+        { _id: new ObjectId(petId) },
+        {
+          $set: {
+            isAdopted: true,
+            adoptionStatus: 'approved',
+          },
+        },
+      );
+
+      res.json({ success: true });
+    });
+    // apporve cancle
+    app.patch('/adoption/cancel/:petId', async (req, res) => {
+      const { petId } = req.params;
+
+      await petAdoptionCollection.updateOne(
+        { _id: new ObjectId(petId) },
+        {
+          $set: {
+            isAdopted: false,
+            adoptionStatus: 'cancelled',
+          },
+        },
+      );
+
+      res.json({ success: true });
+    });
+    //request by pet
+    app.get('/adoption-request/pet/:petId', async (req, res) => {
+      const { petId } = req.params;
+
+      const result = await adoptionCollection.findOne({
+        petId: petId,
+      });
+
+      res.json(result);
+    });
+    // request by user
+    app.get('/adoption-request/check/:petId/:userId', async (req, res) => {
+      const { petId, userId } = req.params;
+
+      const result = await adoptionCollection.findOne({
+        petId: petId,
+        userId: userId,
+      });
+
+      res.json({
+        exists: !!result,
+        data: result,
+      });
+    });
+    // update status
+    app.patch('/adoption-request/status/:requestId', async (req, res) => {
+      const { requestId } = req.params;
+      const { status } = req.body;
+
+      const result = await adoptionCollection.updateOne(
+        { _id: new ObjectId(requestId) },
+        {
+          $set: { status },
+        },
+      );
+
+      res.json(result);
+    });
+    // request modal
+    // app.get('/adoption-request/pet/:petId', async (req, res) => {
+    //   const { petId } = req.params;
+
+    //   const result = await adoptionCollection.find({ petId }).toArray();
+
+    //   res.json(result);
+    // });
+
     // await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!',
