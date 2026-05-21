@@ -102,7 +102,6 @@ async function run() {
       },
     );
 
-    // gpt
     // approve
     app.patch('/adoption/approve/:petId', async (req, res) => {
       const { petId } = req.params;
@@ -173,14 +172,6 @@ async function run() {
 
       res.json(result);
     });
-    // request modal
-    // app.get('/adoption-request/pet/:petId', async (req, res) => {
-    //   const { petId } = req.params;
-
-    //   const result = await adoptionCollection.find({ petId }).toArray();
-
-    //   res.json(result);
-    // });
 
     // await client.db('admin').command({ ping: 1 });
     console.log(
